@@ -124,49 +124,49 @@ void moveGoal(){
   // set speed for goal
   float linearSpeedGain;
   float angularSpeedGain;
-  if(distanceToGoal > 1.5){
-    linearSpeedGain = 0.4;
-  }
-  else if(distanceToGoal < 1.5 && distanceToGoal > 0.5){
-    linearSpeedGain = 0.3;
-  }
-  else{
-    linearSpeedGain = 0.2;
-  }
-
-  // go to goal
-  if (distanceToGoal > 0.2) { 
-    vel_msg.linear.x = linearSpeedGain;
-    angularSpeed = atan2(goalY - myY, goalX - myX) - yaw;
-    cout << "First Angular Speed:" << angularSpeed << "\n";
-    if(angularSpeed < -3.14 ){
-      angularSpeed = 6.28 - angularSpeed;
-      angularSpeedGain = 0.20;
+  float theta;
+  float mag;
+  float decay;
+  float g_angle;
+  float sign;
+  
+  angularSpeedGain = 1;
+  g_angle = atan2(goalY - myY, goalX - myX);
+  theta = (g_angle - yaw);
+  mag = fabs(theta);
+ 
+  sign = (mag - 3.14)*theta;
+  sign = sign/(fabs(sign)); 
+  mag = min(mag, 6.28 - mag);
+  decay = exp(mag)/(36.46);
+    
+  vel_msg.angular.z = angularSpeedGain * sign * decay;
+  vel_msg.linear.x = 0.2 + sqrt(distanceToGoal) * 0.16;
+  
+  
+  // settling down
+  if(distanceToGoal < 0.2)
+  {
+    vel_msg.linear.x = 0;
+    
+    float angle_diff = (masterYaw - yaw);
+    float sign = angle_diff/fabs(angle_diff);
+    
+    if (fabs(angle_diff)  > 0.1){
+    vel_msg.angular.z = sign*0.5;
     }
     else{
-      angularSpeedGain = 1;
+    vel_msg.angular.z = 0;
     }
     
-    vel_msg.angular.z = angularSpeedGain * angularSpeed;
-    
-    cout << "Yaw is: " << yaw << "\n"; 
-    cout << "Angular speed is: " << (atan2(goalY - myY, goalX - myX) - yaw) << "\n";
-    cout << "Y diff:" << goalY - myY << "\n";
-    cout << "X diff:" << goalX - myX << "\n";
-    cout << "------" << "\n";
   }
-  else if (masterYaw >= 0 && masterYaw - yaw  > 0.1){
-    vel_msg.linear.x = 0;
-    vel_msg.angular.z = 0.5;
-  }
-  else if (masterYaw >= 0 && yaw - masterYaw > 0.1){
-    vel_msg.linear.x = 0;
-    vel_msg.angular.z = -0.5;
-  } 
-  else{
-    vel_msg.linear.x = 0;
-    vel_msg.angular.z = 0;
-  }
+  
+      cout << "Yaw is:" << yaw << "\n"; 
+      cout << "Angular speed is: " << vel_msg.angular.z << "\n";
+      cout << "Y diff:" << goalY - myY << "\n";
+      cout << "X diff:" << goalX - myX << "\n";
+      cout << "------" << "\n";
+  
   slaveSpeedPublisher.publish(vel_msg);
 }
 
