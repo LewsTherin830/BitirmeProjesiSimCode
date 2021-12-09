@@ -151,35 +151,37 @@ void moveGoal(){
   goalX = masterPosX + goalPoseX;
   goalY = masterPosY + goalPoseY;
 
-  
   distanceToGoal = getDistance(myX, myY, goalX, goalY);
   // set speed for goal
   float linearSpeedGain;
   float angularSpeedGain;
   float theta;
+  float mag;
   float decay;
   float g_angle;
   float sign;
   
+  angularSpeedGain = 1;
   g_angle = atan2(goalY - myY, goalX - myX);
-  sign = (g_angle - yaw)/fabs(g_angle - yaw);
-    
-  theta = fabs(g_angle - yaw);
-  theta = min(theta, 6.28 - theta);
-  decay = exp(theta)/(36.46);
+  theta = (g_angle - yaw);
+  mag = fabs(theta);
+ 
+  sign = (mag - 3.14)*theta;
+  sign = sign/(fabs(sign)); 
+  mag = min(mag, 6.28 - mag);
+  decay = exp(mag)/(36.46);
     
   vel_msg.angular.z = angularSpeedGain * sign * decay;
   vel_msg.linear.x = 0.2 + sqrt(distanceToGoal) * 0.16;
   
   
-  // go to goal
+  // settling down
   if(distanceToGoal < 0.2)
   {
-    
     vel_msg.linear.x = 0;
+    
     float angle_diff = (masterYaw - yaw);
     float sign = angle_diff/fabs(angle_diff);
-      
     
     if (fabs(angle_diff)  > 0.1){
     vel_msg.angular.z = sign*0.5;
