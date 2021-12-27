@@ -147,10 +147,12 @@ void moveGoal(){
     goalPoseX = -2;
     goalPoseY = 0;
   }
-    
-  goalX = masterPosX + goalPoseX;
-  goalY = masterPosY + goalPoseY;
-
+  
+  float theta = masterYaw - 1.57;
+  
+  goalX = cos(theta)*goalPoseX - sin(theta)*goalPoseY + masterPosX;
+  goalY = sin(theta)*goalPoseX + cos(theta)*goalPoseY + masterPosY;
+  
   
   distanceToGoal = getDistance(myX, myY, goalX, goalY);
   // set speed for goal
